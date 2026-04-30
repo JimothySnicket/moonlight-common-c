@@ -38,4 +38,7 @@ typedef struct _SS_MIC_FRAME_HEADER {
 
 #pragma pack(pop)
 
-_Static_assert(sizeof(SS_MIC_FRAME_HEADER) == 8, "SS_MIC_FRAME_HEADER must be 8 bytes");
+// Cross-compiler static assert: _Static_assert is C11/GCC/Clang but not
+// available in MSVC C mode. The typedef trick works in C89 through C23 and
+// on MSVC without any language-standard flag.
+typedef char _ss_mic_header_size_check[(sizeof(SS_MIC_FRAME_HEADER) == 8) ? 1 : -1];
