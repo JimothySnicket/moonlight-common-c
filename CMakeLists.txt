@@ -122,3 +122,38 @@ else()
         DIRECTORY "${CMAKE_SOURCE_DIR}"
         PROPERTIES COMPILE_FLAGS "-ftree-vectorize -funroll-loops")
 endif()
+
+# ---- Mic unit tests (P4) ----
+# Enable with -DENABLE_MIC_TESTS=ON.
+# Mic.c is compiled with -DMOONLIGHT_MIC_TEST_MODE so its conditional
+# #include resolves to tests/mic_test_internal.h instead of the real
+# Limelight-internal.h, avoiding ENet + OpenSSL dependencies.
+option(ENABLE_MIC_TESTS "Build the moonlight-mic unit test binary" OFF)
+
+if (ENABLE_MIC_TESTS)
+    add_executable(mic_tests
+        tests/test_mic.c
+        tests/mic_stubs.c
+        src/Mic.c
+    )
+
+    # MOONLIGHT_MIC_TEST_MODE switches #include in Mic.c to the lightweight stub.
+    target_compile_definitions(mic_tests PRIVATE MOONLIGHT_MIC_TEST_MODE)
+
+    # tests/ provides mic_test_internal.h; src/ provides Mic.h (included by it).
+    target_include_directories(mic_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    if(MSVC)
+        # Suppress warnings that fire on the minimal test stubs (/W3 is still fine)
+        target_compile_options(mic_tests PRIVATE /W3 /wd4100 /wd4232 /wd5105)
+    else()
+        target_compile_options(mic_tests PRIVATE -Wall -Wextra -Wno-unused-parameter)
+    endif()
+
+    enable_testing()
+    add_test(NAME mic_tests COMMAND mic_tests)
+    message(STATUS "Mic unit tests enabled: build target 'mic_tests', run with ctest")
+endif()

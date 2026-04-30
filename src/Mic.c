@@ -1,4 +1,12 @@
+// Allow the unit-test build to supply a lightweight mock header instead of
+// pulling in the full ENet + OpenSSL + platform dependency chain.
+// Production builds define nothing extra; MOONLIGHT_MIC_TEST_MODE is only
+// set via cmake -DENABLE_MIC_TESTS=ON (the mic_tests target's compile definition).
+#ifdef MOONLIGHT_MIC_TEST_MODE
+#include "mic_test_internal.h"
+#else
 #include "Limelight-internal.h"
+#endif
 
 // Maximum encoded Opus frame size supported by LiSendMicAudioFrame().
 // A 20 ms mono frame at 48 kHz encoded with libopus is well under 1 KB at any
