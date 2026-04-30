@@ -1002,6 +1002,12 @@ void LiRequestIdrFrame(void);
 // This function returns any extended feature flags supported by the host.
 #define LI_FF_PEN_TOUCH_EVENTS        0x01 // LiSendTouchEvent()/LiSendPenEvent() supported
 #define LI_FF_CONTROLLER_TOUCH_EVENTS 0x02 // LiSendControllerTouchEvent() supported
+
+// moonlight-mic: host-side feature flag re-exported from Mic.h so that
+// moonlight-qt C++ code can test capability via LiGetHostFeatureFlags()
+// using only this public header. Keep in sync with the definition in Mic.h.
+#define SS_FF_MIC_INPUT 0x0100 // Host supports mic-audio input (SS_MIC_OPUS_PTYPE 0x5510)
+
 uint32_t LiGetHostFeatureFlags(void);
 
 // This function sends a single Opus-encoded microphone audio frame to the host via
