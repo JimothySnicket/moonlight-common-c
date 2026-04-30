@@ -18,6 +18,16 @@ int LiSendMicAudioFrame(const unsigned char* opusData, int opusLen, uint16_t seq
     unsigned char packet[sizeof(SS_MIC_FRAME_HEADER) + MAX_OPUS_BYTES];
     PSS_MIC_FRAME_HEADER header;
 
+    // --- Host capability gate ---
+    // If the host has not advertised SS_FF_MIC_INPUT in its SDP feature flags,
+    // silently discard the frame. This is belt-and-braces: the caller (C3) should
+    // already have checked host capability before starting the send loop, but this
+    // ensures that 0x5510 packets never reach a stock host under any code path.
+    // Return 0 (success) so the caller's error-handling is not tripped.
+    if (!(SunshineFeatureFlags & SS_FF_MIC_INPUT)) {
+        return 0;
+    }
+
     // --- Input validation ---
     if (opusData == NULL) {
         return -1;
