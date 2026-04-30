@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - master
+      - moonlight-mic
     types:
       - opened
       - synchronize
@@ -77,3 +78,18 @@ jobs:
           mkdir build_release
           cmake ${{ matrix.cmake_args }} -DCMAKE_BUILD_TYPE=Release -B build_release -S .
           cmake --build build_release --config Release
+
+  mic-tests:
+    name: Mic Tests (P4)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build and run mic_tests
+        run: |
+          cmake -B build -DENABLE_MIC_TESTS=ON -DCMAKE_BUILD_TYPE=Debug -S .
+          cmake --build build
+          ctest --test-dir build --output-on-failure
