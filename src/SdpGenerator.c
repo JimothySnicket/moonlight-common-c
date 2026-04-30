@@ -267,8 +267,11 @@ static PSDP_OPTION getAttributesList(char*urlSafeAddr) {
     err = 0;
 
     if (IS_SUNSHINE()) {
-        // Send client feature flags to Sunshine hosts
-        uint32_t moonlightFeatureFlags = ML_FF_FEC_STATUS | ML_FF_SESSION_ID_V1;
+        // Send client feature flags to Sunshine hosts.
+        // ML_FF_MIC_INPUT advertises that this client supports the mic audio passthrough
+        // feature (P2 / SS_MIC_OPUS_PTYPE = 0x5510). The host (H3) gates decoder and
+        // WASAPI resource allocation on this bit being present.
+        uint32_t moonlightFeatureFlags = ML_FF_FEC_STATUS | ML_FF_SESSION_ID_V1 | ML_FF_MIC_INPUT;
         snprintf(payloadStr, sizeof(payloadStr), "%u", moonlightFeatureFlags);
         err |= addAttributeString(&optionHead, "x-ml-general.featureFlags", payloadStr);
 

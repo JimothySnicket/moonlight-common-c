@@ -8,6 +8,22 @@
 // as gap for any Sunshine-side additions before this value.
 #define SS_MIC_OPUS_PTYPE 0x5510
 
+// Host-side feature flag: host advertises mic-input support in its SDP
+// x-ss-general.featureFlags attribute (parsed into SunshineFeatureFlags).
+// Bit value 0x0100 confirmed free against existing LI_FF_* allocations
+// (0x01 = LI_FF_PEN_TOUCH_EVENTS, 0x02 = LI_FF_CONTROLLER_TOUCH_EVENTS).
+// Matches WIRE.md placeholder.
+// H3 (Apollo, host side) sets this bit; P3 (client side) reads it.
+#define SS_FF_MIC_INPUT 0x0100
+
+// Client-side feature flag: client advertises mic-input capability in its
+// SDP x-ml-general.featureFlags attribute sent to the host during connection.
+// Bit value 0x04 confirmed free against existing ML_FF_* allocations
+// (0x01 = ML_FF_FEC_STATUS, 0x02 = ML_FF_SESSION_ID_V1).
+// Matches WIRE.md placeholder.
+// P3 (client side) emits this bit; H3 (Apollo, host side) reads it.
+#define ML_FF_MIC_INPUT 0x04
+
 #pragma pack(push, 1)
 
 // Fields are big-endian (matches RTP audio convention used host-to-client).
