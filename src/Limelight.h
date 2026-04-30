@@ -1004,6 +1004,25 @@ void LiRequestIdrFrame(void);
 #define LI_FF_CONTROLLER_TOUCH_EVENTS 0x02 // LiSendControllerTouchEvent() supported
 uint32_t LiGetHostFeatureFlags(void);
 
+// This function sends a single Opus-encoded microphone audio frame to the host via
+// the existing AES-GCM encrypted control tunnel as a SS_MIC_OPUS_PTYPE (0x5510) packet.
+// Capability gating is the caller's responsibility (P3 wires SS_FF_MIC_INPUT / ML_FF_MIC_INPUT).
+//
+// Parameters:
+//   opusData   - Pointer to the Opus-encoded frame bytes. Must not be NULL.
+//   opusLen    - Byte length of opusData. Must be > 0 and <= LI_MIC_MAX_OPUS_BYTES.
+//   seqNumber  - Monotonic sequence number for this frame (wraps at 65535, first = 0).
+//                Used to populate the SS_MIC_FRAME_HEADER sequenceNumber and to derive
+//                the timestamp (seqNumber * 960 samples at 48 kHz mono, 20 ms per frame).
+//
+// Return values:
+//   0              - Frame dispatched successfully.
+//   -1             - opusData is NULL.
+//   -2             - opusLen is out of range (0 or > LI_MIC_MAX_OPUS_BYTES).
+//   -3             - Control stream send failed.
+#define LI_MIC_MAX_OPUS_BYTES 1500
+int LiSendMicAudioFrame(const unsigned char* opusData, int opusLen, uint16_t seqNumber);
+
 #ifdef __cplusplus
 }
 #endif
