@@ -1710,6 +1710,19 @@ void flushInputOnControlStream(void) {
     }
 }
 
+// Called by the mic stream to send a single mic audio frame unsequenced.
+// Returns 0 on success, -1 on failure.
+int sendMicPacketOnControlStream(const void* data, int length) {
+    if (!sendMessageAndForget(SS_MIC_OPUS_PTYPE, (short)length, data,
+                              CTRL_CHANNEL_GENERIC,
+                              ENET_PACKET_FLAG_UNSEQUENCED,
+                              false)) {
+        return -1;
+    }
+
+    return 0;
+}
+
 bool isControlDataInTransit(void) {
     bool ret = false;
 

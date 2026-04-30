@@ -125,6 +125,7 @@ void connectionSawFrame(uint32_t frameIndex);
 void connectionSendFrameFecStatus(PSS_FRAME_FEC_STATUS fecStatus);
 int sendInputPacketOnControlStream(unsigned char* data, int length, uint8_t channelId, uint32_t flags, bool moreData);
 void flushInputOnControlStream(void);
+int sendMicPacketOnControlStream(const void* data, int length);
 bool isControlDataInTransit(void);
 
 int performRtspHandshake(PSERVER_INFORMATION serverInfo);
