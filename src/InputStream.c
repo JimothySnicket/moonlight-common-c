@@ -114,6 +114,7 @@ int initializeInputStream(void) {
     batchedScrollDelta = 0;
 
     currentPenButtonState = 0;
+    memset(currentQueuedControllerPacket, 0, sizeof(currentQueuedControllerPacket));
 
     // Start with the virtual mouse centered
     absCurrentPosX = absCurrentPosY = 0.5f;

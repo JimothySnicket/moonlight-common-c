@@ -693,6 +693,10 @@ static bool sendMessageEnet(short ptype, short paylen, const void* payload, uint
     ENetPacket* enetPacket;
     int err;
 
+    if (paylen < 0) {
+        return false;
+    }
+
     LC_ASSERT(AppVersionQuad[0] >= 5);
 
     // Only send reliable packets to GFE
@@ -703,12 +707,24 @@ static bool sendMessageEnet(short ptype, short paylen, const void* payload, uint
     if (encryptedControlStream) {
         PNVCTL_ENCRYPTED_PACKET_HEADER encPacket;
         PNVCTL_ENET_PACKET_HEADER_V2 packet;
-        char tempBuffer[256];
+        char stackBuffer[256];
+        char* tempBuffer = stackBuffer;
+        size_t plaintextLength = sizeof(*packet) + (size_t)paylen;
+
+        if (plaintextLength > sizeof(stackBuffer)) {
+            tempBuffer = malloc(plaintextLength);
+            if (tempBuffer == NULL) {
+                return false;
+            }
+        }
 
         enetPacket = enet_packet_create(NULL,
-                                        sizeof(*encPacket) + AES_GCM_TAG_LENGTH + sizeof(*packet) + paylen,
+                                        sizeof(*encPacket) + AES_GCM_TAG_LENGTH + plaintextLength,
                                         flags);
         if (enetPacket == NULL) {
+            if (tempBuffer != stackBuffer) {
+                free(tempBuffer);
+            }
             return false;
         }
 
@@ -718,11 +734,10 @@ static bool sendMessageEnet(short ptype, short paylen, const void* payload, uint
 
         encPacket = (PNVCTL_ENCRYPTED_PACKET_HEADER)enetPacket->data;
         encPacket->encryptedHeaderType = 0x0001;
-        encPacket->length = sizeof(encPacket->seq) + AES_GCM_TAG_LENGTH + sizeof(*packet) + paylen;
+        encPacket->length = (unsigned short)(sizeof(encPacket->seq) + AES_GCM_TAG_LENGTH + plaintextLength);
         encPacket->seq = currentEnetSequenceNumber++;
 
         // Construct the plaintext data for encryption
-        LC_ASSERT(sizeof(*packet) + paylen < sizeof(tempBuffer));
         packet = (PNVCTL_ENET_PACKET_HEADER_V2)tempBuffer;
         packet->type = ptype;
         packet->payloadLength = paylen;
@@ -732,8 +747,15 @@ static bool sendMessageEnet(short ptype, short paylen, const void* payload, uint
         if (!encryptControlMessage(encPacket, packet)) {
             Limelog("Failed to encrypt control stream message\n");
             enet_packet_destroy(enetPacket);
+            if (tempBuffer != stackBuffer) {
+                free(tempBuffer);
+            }
             PltUnlockMutex(&enetMutex);
             return false;
+        }
+
+        if (tempBuffer != stackBuffer) {
+            free(tempBuffer);
         }
 
         // enetMutex still locked here
